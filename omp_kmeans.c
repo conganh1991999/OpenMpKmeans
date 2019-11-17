@@ -47,14 +47,14 @@ int find_nearest_cluster(int numClusters, int numCoords, float *object, float **
 }
 
 /* kmeans_clustering() : return an array of cluster centers of size [numClusters][numCoords] */
-float** omp_kmeans(
-    float **objects,		/* in: [numObjs][numCoords] */
-    int numCoords,			/* no. coordinates */
-    int numObjs,			/* no. objects */
-    int numClusters,		/* no. clusters */
-    float threshold,		/* % objects change membership */
-    int *membership)		/* out: [numObjs] */
+float** omp_kmeans(float **objects, int numCoords, int numObjs, int numClusters, float threshold, int *membership)
 {
+    /* in: [numObjs][numCoords] */
+    /* no. coordinates */
+    /* no. objects */
+    /* no. clusters */
+    /* % objects change membership */
+    /* out: [numObjs] */
 
     int i, j, k, index, loop=0;
     int *newClusterSize;	/* [numClusters]: no. objects assigned in each new cluster */
