@@ -1,15 +1,15 @@
 /* Input file format: */
 /* ascii file: each line contains 1 data object */
 /* binary file: first 4-byte integer is the number of data objects,
-and 2nd integer is the no. of features (or coordinates) of each object */
+and 2nd integer is the number of features (or coordinates) of each object */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>     /* strtok() */
-#include <sys/types.h>  /* open() */
+#include <string.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>     /* getopt() */
+#include <unistd.h>
 
 #include <omp.h>
 int      _debug;
@@ -24,7 +24,6 @@ static void usage(char *argv0, float threshold) {
         "       -n num_clusters: number of clusters (K must > 1)\n"
         "       -t threshold   : threshold value (default %.4f)\n"
         "       -p nproc       : number of threads (default system allocated)\n"
-        "       -a             : perform atomic OpenMP pragma (default no)\n"
         "       -o             : output timing results (default no)\n"
         "       -d             : enable debug mode\n";
     fprintf(stderr, help, argv0, threshold);
@@ -37,7 +36,7 @@ int main(int argc, char **argv) {
     extern char   *optarg;
     extern int     optind;
            int     i, j, nthreads;
-           int     isBinaryFile, is_perform_atomic, is_output_timing;
+           int     isBinaryFile, is_output_timing;
 
            int     numClusters, numCoords, numObjs;
            int    *membership;    /* [numObjs] */
@@ -55,7 +54,6 @@ int main(int argc, char **argv) {
     numClusters       = 0;
     isBinaryFile      = 0;
     is_output_timing  = 0;
-    is_perform_atomic = 0;
     filename          = NULL;
 
     while ( (opt=getopt(argc,argv,"p:i:n:t:abdo"))!= EOF) {
@@ -64,13 +62,11 @@ int main(int argc, char **argv) {
                       break;
             case 'b': isBinaryFile = 1;
                       break;
-            case 't': threshold=atof(optarg);
+            case 't': threshold = atof(optarg);
                       break;
             case 'n': numClusters = atoi(optarg);
                       break;
             case 'p': nthreads = atoi(optarg);
-                      break;
-            case 'a': is_perform_atomic = 1;
                       break;
             case 'o': is_output_timing = 1;
                       break;
@@ -85,14 +81,13 @@ int main(int argc, char **argv) {
 
     if (filename == 0 || numClusters <= 1) usage(argv[0], threshold);
 
-    /* set the no. threads if specified in command line, else use all
-       threads allocated by run-time system */
+    /* set the no. threads if specified in command line, else use all threads allocated by run-time system */
     if (nthreads > 0)
         omp_set_num_threads(nthreads);
 
     if (is_output_timing) io_timing = omp_get_wtime();
 
-    /* read data points from file ------------------------------------------*/
+    /* read data points from file */
     objects = file_read(isBinaryFile, filename, &numObjs, &numCoords);
     if (objects == NULL) exit(1);
 
@@ -102,13 +97,12 @@ int main(int argc, char **argv) {
         clustering_timing = timing;
     }      
 
-    /* start the core computation -------------------------------------------*/
+    /* start the core computation */
     /* membership: the cluster id for each data object */
     membership = (int*) malloc(numObjs * sizeof(int));
     assert(membership != NULL);
 
-    clusters = omp_kmeans(is_perform_atomic, objects, numCoords, numObjs,
-                          numClusters, threshold, membership);
+    clusters = omp_kmeans(objects, numCoords, numObjs, numClusters, threshold, membership);
 
     free(objects[0]);
     free(objects);
@@ -118,22 +112,16 @@ int main(int argc, char **argv) {
         clustering_timing = timing - clustering_timing;
     }       
 
-    /* output: the coordinates of the cluster centres ----------------------*/
+    /* output: the coordinates of the cluster centres */
     file_write(filename, numClusters, numObjs, numCoords, clusters, membership);
 
     free(membership);
     free(clusters[0]);
     free(clusters);
 
-    /*---- output performance numbers ---------------------------------------*/
+    /* output performance numbers */
     if (is_output_timing) {
         io_timing += omp_get_wtime() - timing;
-
-        printf("\nPerforming **** Regular Kmeans  (OpenMP) ----");
-        if (is_perform_atomic)
-            printf(" using atomic pragma ******\n");
-        else
-            printf(" using array reduction ******\n");
 
         printf("Number of threads = %d\n", omp_get_max_threads());
         printf("Input file:     %s\n", filename);
@@ -145,7 +133,6 @@ int main(int argc, char **argv) {
         printf("I/O time           = %10.4f sec\n", io_timing);
         printf("Computation timing = %10.4f sec\n", clustering_timing);
     }
-
+    
     return(0);
 }
-
