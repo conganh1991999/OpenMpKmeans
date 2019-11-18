@@ -15,21 +15,6 @@
         name[i] = name[i-1] + yDim;                         \
 } while (0)
 
-#ifdef __CUDACC__
-inline void checkCuda(cudaError_t e) {
-    if (e != cudaSuccess) {
-        // cudaGetErrorString() isn't always very helpful. Look up the error
-        // number in the cudaError enum in driver_types.h in the CUDA includes
-        // directory for a better explanation.
-        err("CUDA Error %d: %s\n", e, cudaGetErrorString(e));
-    }
-}
-
-inline void checkLastCudaError() {
-    checkCuda(cudaGetLastError());
-}
-#endif
-
 float** omp_kmeans(float**, int, int, int, float, int*);
 float** seq_kmeans(float**, int, int, int, float, int*, int*);
 

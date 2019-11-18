@@ -1,8 +1,3 @@
-/* Input file format: */
-/* ascii file: each line contains 1 data object */
-/* binary file: first 4-byte integer is the number of data objects,
-and 2nd integer is the number of features (or coordinates) of each object */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,9 +6,11 @@ and 2nd integer is the number of features (or coordinates) of each object */
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <omp.h>
-int      _debug;
 #include "kmeans.h"
+
+#include <omp.h>
+
+int _debug;
 
 /* usage() */
 static void usage(char *argv0, float threshold) {

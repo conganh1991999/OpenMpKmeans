@@ -6,16 +6,15 @@ and 2nd integer is the no. of features (or coordinates) of each object */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>     /* strtok() */
-#include <sys/types.h>  /* open() */
+#include <string.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>     /* read(), close() */
+#include <unistd.h>
 
 #include "kmeans.h"
 
 #define MAX_CHAR_PER_LINE 128
-
 
 /*---< file_read() >---------------------------------------------------------*/
 float** file_read(int   isBinaryFile,  /* flag: 0 or 1 */
