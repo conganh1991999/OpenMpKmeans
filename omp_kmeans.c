@@ -120,7 +120,7 @@ float** omp_kmeans(float **objects, int numCoords, int numObjs, int numClusters,
     }
 
     /*  mỗi thread tính các cụm mới sử dụng một không gian bộ nhớ riêng,
-        sau đó thread 0 (master) sẽ gom tổng tất cả các kết quả lại  */
+        sau đó thread 0 (master) sẽ cộng dồn tất cả các kết quả lại  */
     if (_debug) timing = omp_get_wtime();
     do {
         delta = 0.0;
@@ -135,23 +135,23 @@ float** omp_kmeans(float **objects, int numCoords, int numObjs, int numClusters,
                         schedule(static,500) \
                         reduction(+:delta)
             for (i=0; i<numObjs; i++) {
-                // find the array index of nestest cluster center
-                index = find_nearest_cluster(numClusters, numCoords,objects[i], clusters);
+                // tìm địa chỉ cụm gần nhất với điểm đang xét
+                index = find_nearest_cluster(numClusters, numCoords, objects[i], clusters);
 
-                // if membership changes, increase delta by 1
+                // nếu điểm đang xét thay đổi cụm, tăng delta lên 1
                 if (membership[i] != index) delta += 1.0;
 
-                // assign the membership to object i
+                // thay đổi cụm
                 membership[i] = index;
 
-                // update new cluster centers : sum of all objects located within (average will be performed later)
+                // cập nhật các tâm cụm: tổng tất cả các điểm nằm trong của mỗi cụm (sẽ tính trung bình sau)
                 local_newClusterSize[tid][index]++;
                 for (j=0; j<numCoords; j++)
                     local_newClusters[tid][index][j] += objects[i][j];
             }
-        } // end of #pragma omp parallel
+        } // kết thúc #pragma omp parallel
 
-        // let the main thread perform the array reduction
+        // master thực hiện việc cộng dồn
         for (i=0; i<numClusters; i++) {
             for (j=0; j<nthreads; j++) {
                 newClusterSize[i] += local_newClusterSize[j][i];
@@ -163,14 +163,14 @@ float** omp_kmeans(float **objects, int numCoords, int numObjs, int numClusters,
             }
         }
 
-        // average the sum and replace old cluster centers with newClusters
+        // tính trung bình và thay thế các tâm cụm cũ bằng các tâm cụm mới
         for (i=0; i<numClusters; i++) {
             for (j=0; j<numCoords; j++) {
                 if (newClusterSize[i] > 1)
                     clusters[i][j] = newClusters[i][j] / newClusterSize[i];
-                newClusters[i][j] = 0.0;   // set back to 0
+                newClusters[i][j] = 0.0;   // đặt lại = 0
             }
-            newClusterSize[i] = 0;   // set back to 0
+            newClusterSize[i] = 0;   // đặt lại = 0
         }
             
         delta /= numObjs;

@@ -1,5 +1,3 @@
-/* Description:  a timer that reports the current wall time */
-
 #include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,8 +11,8 @@ double wtime(void)
     if (gettimeofday(&etstart, &tzp) == -1)
         perror("Error: calling gettimeofday() not successful.\n");
 
-    now_time = ((double)etstart.tv_sec) +              /* in seconds */
-               ((double)etstart.tv_usec) / 1000000.0;  /* in microseconds */
+    now_time = ((double)etstart.tv_sec) +
+               ((double)etstart.tv_usec) / 1000000.0;
     return now_time;
 }
 

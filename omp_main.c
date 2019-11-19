@@ -29,21 +29,20 @@ static void usage(char *argv0, float threshold) {
 
 /* main() */
 int main(int argc, char **argv) {
-           int     opt;
+           int    opt;
     extern char   *optarg;
-    extern int     optind;
-           int     i, j, nthreads;
-           int     isBinaryFile, is_output_timing;
-
-           int     numClusters, numCoords, numObjs;
-           int    *membership;    /* [numObjs] */
+    extern int    optind;
+           int    i, j, nthreads;
+           int    isBinaryFile, is_output_timing;
+           int    numClusters, numCoords, numObjs;
+           int    *membership;
            char   *filename;
-           float **objects;       /* [numObjs][numCoords] data objects */
-           float **clusters;      /* [numClusters][numCoords] cluster center */
-           float   threshold;
-           double  timing, io_timing, clustering_timing;
+           float  **objects;
+           float  **clusters;
+           float  threshold;
+           double timing, io_timing, clustering_timing;
 
-    /* some default values */
+    // khởi tạo các giá trị mặc định
     _debug            = 0;
     nthreads          = 0;
     numClusters       = 0;
@@ -53,7 +52,7 @@ int main(int argc, char **argv) {
     is_output_timing  = 0;
     filename          = NULL;
 
-    while ( (opt=getopt(argc,argv,"p:i:n:t:abdo"))!= EOF) {
+    while ((opt=getopt(argc,argv,"p:i:n:t:abdo"))!= EOF) {
         switch (opt) {
             case 'i': filename=optarg;
                       break;
@@ -78,13 +77,11 @@ int main(int argc, char **argv) {
 
     if (filename == 0 || numClusters <= 1) usage(argv[0], threshold);
 
-    /* set the no. threads if specified in command line, else use all threads allocated by run-time system */
     if (nthreads > 0)
         omp_set_num_threads(nthreads);
 
     if (is_output_timing) io_timing = omp_get_wtime();
 
-    /* read data points from file */
     objects = file_read(isBinaryFile, filename, &numObjs, &numCoords);
     if (objects == NULL) exit(1);
 
@@ -94,8 +91,7 @@ int main(int argc, char **argv) {
         clustering_timing = timing;
     }      
 
-    /* start the core computation */
-    /* membership: the cluster id for each data object */
+    // tính toán
     membership = (int*) malloc(numObjs * sizeof(int));
     assert(membership != NULL);
 
@@ -109,14 +105,12 @@ int main(int argc, char **argv) {
         clustering_timing = timing - clustering_timing;
     }       
 
-    /* output: the coordinates of the cluster centres */
     file_write(filename, numClusters, numObjs, numCoords, clusters, membership);
 
     free(membership);
     free(clusters[0]);
     free(clusters);
 
-    /* output performance numbers */
     if (is_output_timing) {
         io_timing += omp_get_wtime() - timing;
 
